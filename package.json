@@ -1,0 +1,26 @@
+{
+  "name": "html-games",
+  "version": "1.0.0",
+  "description": "A curated collection of classic and original browser-based games built with **HTML**, **CSS**, and **vanilla JavaScript**. No external libraries or frameworks — just pure web technologies for fast, lightweight, and accessible gaming.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chiefwannabe/HTML-games.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/chiefwannabe/HTML-games/issues"
+  },
+  "homepage": "https://github.com/chiefwannabe/HTML-games#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1"
+  }
+}

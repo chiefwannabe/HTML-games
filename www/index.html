@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contacts Manager</title>
+  <style>
+    :root {
+      --bg: #080b10;
+      --panel: #10151d;
+      --cyan: #2de2ff;
+      --pink: #ff3fa4;
+      --cyan-glow: rgba(45, 226, 255, 0.35);
+      --pink-glow: rgba(255, 63, 164, 0.35);
+      --text-main: #e6eef7;
+      --text-muted: #8f9bb3;
+      --border: rgba(230, 238, 247, 0.1);
+      --radius: 14px;
+      --radius-sm: 10px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: -20%;
+      left: -10%;
+      width: 60vw;
+      height: 60vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(45, 226, 255, 0.18) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      top: -10%;
+      right: -15%;
+      width: 60vw;
+      height: 60vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 63, 164, 0.18) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      flex: 1 1 auto;
+    }
+
+    .sub {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1 1 100%;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--cyan);
+      background: transparent;
+      color: var(--cyan);
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px var(--cyan-glow);
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(45, 226, 255, 0.14), rgba(255, 63, 164, 0.14));
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .btn.primary:hover {
+      box-shadow: 0 0 20px var(--cyan-glow), 0 0 20px var(--pink-glow);
+    }
+
+    .search-box {
+      width: 100%;
+      margin: 16px 0 8px;
+    }
+
+    .search-box input {
+      width: 100%;
+      max-width: 640px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text-main);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 160ms, box-shadow 160ms;
+    }
+
+    .search-box input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    .count {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-right: auto;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 480px) {
+      .grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      position: relative;
+      padding: 18px 18px 18px 22px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      transition: transform 200ms ease, box-shadow 200ms ease;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--cyan), var(--pink));
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px -6px var(--cyan-glow), 0 10px 30px -6px var(--pink-glow);
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      color: var(--cyan);
+      text-shadow: 0 0 10px var(--cyan-glow);
+      background: rgba(45, 226, 255, 0.08);
+    }
+
+    .card-body { flex: 1; min-width: 0; }
+
+    .card-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 6px; word-break: break-word; }
+
+    .card-line { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; word-break: break-all; }
+
+    .card-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+    appearance: none;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 100ms, box-shadow 120ms, border-color 120ms, color 120ms;
+    }
+
+    .icon-btn:hover {
+      transform:TranslateY(-2px);
+      box-shadow: 0 0 10px var(--cyan-glow);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .icon-btn:active { transform: scale(0.96); }
+
+    .icon-btn.danger:hover {
+      box-shadow: 0 0 10px var(--pink-glow);
+      border-color: var(--pink);
+      color: var(--pink);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 11, 16, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease;
+    }
+
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(12px);
+      transition: transform 180ms ease;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-overlay.open .modal { transform: translateY(0); }
+
+    .modal-header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title { font-size: 1.15rem; font-weight: 700; }
+
+    .modal-body { padding: 18px 22px; }
+
+    .form-group { margin-bottom: 16px; }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.25);
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 160ms, box-shadow 160ms;
+      font-family: inherit;
+    }
+
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    .form-group.invalid input, .form-group.invalid textarea {
+      border-color: var(--pink);
+      box-shadow: 0 0 8px var(--pink-glow);
+    }
+
+    .error-msg {
+      color: var(--pink);
+      font-size: 0.85rem;
+      margin-top: 4px;
+      min-height: 1.2em;
+    }
+
+    .phone-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .phone-row input { flex: 1; }
+
+    .phone-row .icon-btn { width: 28px; height: 28px; border: none; }
+
+    .add-phone {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1px dashed var(--border);
+      color: var(--text-muted);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: border-color 120ms, color 120ms;
+    }
+
+    .add-phone:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    .add-phone:disabled { opacity: 0.5; cursor: not-allowed; border-color: var(--border); color: var(--text-muted); }
+
+    .modal-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .merge-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin-bottom: 16px;
+    }
+
+    .merge-panel h3 { margin-bottom: 10px; font-size: 1rem; }
+
+    .merge-options { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .empty { text-align: center; color: var(--text-muted); padding: 40px 10px; }
+
+    .hidden { display: none; }
+
+    #import-input { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Contacts Manager</h1>
+      <div class="sub">
+        <span class="status" id="save-status"></span>
+      </div>
+    </header>
+
+    <div class="search-box">
+      <input type="text" id="search" placeholder="Search by name, phone, or email..." autocomplete="off" />
+    </div>
+
+    <div class="toolbar">
+      <span class="count" id="count">0 contacts</span>
+      <button class="btn primary" id="btn-add">+ New contact</button>
+      <button class="btn" id="btn-export-json">Export JSON</button>
+      <button class="btn" id="btn-export-csv">Export CSV</button>
+      <button class="btn" id="btn-import">Import</button>
+      <button class="btn" id="btn-merge">Merge contacts</button>
+      <input type="file" id="import-input" accept=".json,.csv" />
+    </div>
+
+    <div class="merge-panel hidden" id="merge-panel">
+      <h3>Merge duplicates</h3>
+      <div class="merge-options">
+        <button class="btn" id="merge-name">Same name</button>
+        <button class="btn" id="merge-phone">Same number</button>
+      </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title">New contact</div>
+        <button class="icon-btn" id="modal-close" aria-label="Close">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <form id="contact-form" novalidate>
+          <div class="form-group" id="fg-name">
+            <label for="name">Name</label>
+            <input type="text" id="name" />
+            <div class="error-msg" id="err-name"></div>
+          </div>
+          <div class="form-group">
+            <label>Phone number(s)</label>
+            <div id="phone-list"></div>
+            <button type="button" class="add-phone" id="add-phone">+ Add another number</button>
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="text" id="email" />
+          </div>
+          <div class="form-group">
+            <label for="note">Note</label>
+            <textarea id="note"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="modal-cancel">Cancel</button>
+        <button class="btn primary" id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // Persistence
+      const STORAGE_KEY = 'neon_contacts_data_v1';
+      let storageAvailable = false;
+      let memoryState = [];
+
+      function tryLoad() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed;
+          }
+        } catch (e) {}
+        return [];
+      }
+
+      function trySave(data) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          storageAvailable = true;
+        } catch (e) {
+          storageAvailable = false;
+        }
+      }
+
+      function updateSaveStatus() {
+        const el = document.getElementById('save-status');
+        if (storageAvailable) {
+          el.textContent = 'auto-saves to this browser';
+        } else {
+          el.textContent = 'session only — not saved (export to keep)';
+        }
+      }
+
+      let contacts = tryLoad();
+      storageAvailable = true;
+      updateSaveStatus();
+
+      function persist() {
+        trySave(contacts);
+        updateSaveStatus();
+      }
+
+      // Helpers
+      function uid() {
+        return Math.random().toString(36).slice(2) + Date.now().toString(36);
+      }
+
+      function initials(name) {
+        const parts = name.trim().split(/\s+/);
+        if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        return name.trim().slice(0, 2).toUpperCase();
+      }
+
+      function escapeHTML(str) {
+        return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
+      }
+
+      function normalizeDigits(phone) {
+        return String(phone).replace(/[^0-9]/g, '');
+      }
+
+      // DOM refs
+      const grid = document.getElementById('grid');
+      const searchInput = document.getElementById('search');
+      const countEl = document.getElementById('count');
+      const modalOverlay = document.getElementById('modal-overlay');
+      const modalTitle = document.getElementById('modal-title');
+      const phoneList = document.getElementById('phone-list');
+      const addPhoneBtn = document.getElementById('add-phone');
+      const nameInput = document.getElementById('name');
+      const emailInput = document.getElementById('email');
+      const noteInput = document.getElementById('note');
+      const contactForm = document.getElementById('contact-form');
+      const errName = document.getElementById('err-name');
+      const fgName = document.getElementById('fg-name');
+      const mergePanel = document.getElementById('merge-panel');
+
+      let editingId = null;
+      let phoneValues = [];
+
+      function renderPhoneRows() {
+        phoneList.innerHTML = '';
+        phoneValues.forEach((val, idx) => {
+          const row = document.createElement('div');
+          row.className = 'phone-row';
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = val;
+          input.placeholder = 'Phone';
+          input.addEventListener('input', () => { phoneValues[idx] = input.value; });
+          row.appendChild(input);
+          const removeBtn = document.createElement('button');
+          removeBtn.type = 'button';
+          removeBtn.className = 'icon-btn danger';
+          removeBtn.innerHTML = '&#10005;';
+          removeBtn.setAttribute('aria-label', 'Remove phone');
+          removeBtn.addEventListener('click', () => {
+            if (phoneValues.length === 1) {
+              phoneValues[0] = '+91 ';
+            } else {
+              phoneValues.splice(idx, 1);
+            }
+            renderPhoneRows();
+            updateAddPhoneState();
+          });
+          row.appendChild(removeBtn);
+          phoneList.appendChild(row);
+        });
+      }
+
+      function updateAddPhoneState() {
+        if (phoneValues.length >= 4) {
+          addPhoneBtn.disabled = true;
+        } else {
+          addPhoneBtn.disabled = false;
+        }
+      }
+
+      function openModal(editContact) {
+        editingId = editContact ? editContact.id : null;
+        modalTitle.textContent = editContact ? 'Edit contact' : 'New contact';
+        nameInput.value = editContact ? editContact.name : '';
+        emailInput.value = editContact ? editContact.email || '' : '';
+        noteInput.value = editContact ? editContact.note || '' : '';
+        phoneValues = [];
+        if (editContact && Array.isArray(editContact.phones) && editContact.phones.length > 0) {
+          editContact.phones.forEach(p => phoneValues.push(p));
+        }
+        if (phoneValues.length === 0) phoneValues.push('+91 ');
+        renderPhoneRows();
+        updateAddPhoneState();
+        clearValidation();
+        modalOverlay.classList.add('open');
+      }
+
+      function closeModal() {
+        modalOverlay.classList.remove('open');
+        editingId = null;
+      }
+
+      function clearValidation() {
+        fgName.classList.remove('invalid');
+        errName.textContent = '';
+      }
+
+      function validate() {
+        let ok = true;
+        fgName.classList.remove('invalid');
+        errName.textContent = '';
+        const name = nameInput.value.trim();
+        if (!name) {
+          fgName.classList.add('invalid');
+          errName.textContent = 'Name is required.';
+          ok = false;
+        } else if (!/^[A-Za-z\s'\-\.]+$/.test(name)) {
+          fgName.classList.add('invalid');
+          errName.textContent = 'Only letters, spaces, apostrophes, hyphens, and periods allowed.';
+          ok = false;
+        }
+        // Phone validation per-field
+        const phoneInputs = phoneList.querySelectorAll('input');
+        let pIdx = 0;
+        for (const inp of phoneInputs) {
+          const v = inp.value.trim();
+          if (v && !/^[0-9\+\s\-\(\)]*$/.test(v)) {
+            ok = false;
+            // Show inline by highlighting the field (no global error for now)
+            inp.style.borderColor = 'var(--pink)';
+          } else {
+            inp.style.borderColor = '';
+          }
+          pIdx++;
+        }
+        return ok;
+      }
+
+      function saveContact() {
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const note = noteInput.value.trim();
+        const phoneInputs = phoneList.querySelectorAll('input');
+        const phones = [];
+        phoneInputs.forEach(inp => {
+          const v = inp.value.trim();
+          if (v) phones.push(v);
+        });
+        const payload = { name, email, note, phones };
+        if (editingId) {
+          const idx = contacts.findIndex(c => c.id === editingId);
+          if (idx !== -1) {
+            contacts[idx] = { ...contacts[idx], ...payload };
+          }
+        } else {
+          contacts.push({ id: uid(), ...payload });
+        }
+        persist();
+        render();
+        closeModal();
+      }
+
+      function deleteContact(id) {
+        if (!confirm('Are you sure you want to delete this contact?')) return;
+        contacts = contacts.filter(c => c.id !== id);
+        persist();
+        render();
+      }
+
+      function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+
+      function render() {
+        const q = (searchInput.value || '').trim().toLowerCase();
+        let filtered = contacts;
+        if (q) {
+          filtered = contacts.filter(c => {
+            const hay = [c.name, c.email, (c.phones || []).join(' ')].join(' ').toLowerCase();
+            return hay.includes(q);
+          });
+        }
+        grid.innerHTML = '';
+        if (filtered.length === 0) {
+          grid.innerHTML = '<div class="empty">No contacts yet</div>';
+        }
+        filtered.forEach(c => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          const phones = (c.phones || []).filter(p => p).map(p => escapeHTML(p)).join('<br>');
+          card.innerHTML = `
+            <div class="avatar">${escapeHTML(initials(c.name || '?'))}</div>
+            <div class="card-body">
+              <div class="card-title">${escapeHTML(c.name || 'Unnamed')}</div>
+              ${phones ? `<div class="card-line">${phones}</div>` : ''}
+              ${c.email ? `<div class="card-line">${escapeHTML(c.email)}</div>` : ''}
+              ${c.note ? `<div class="card-line">${escapeHTML(c.note)}</div>` : ''}
+            </div>
+            <div class="card-actions">
+              <button class="icon-btn" aria-label="Edit" data-id="${c.id}">&#9998;</button>
+              <button class="icon-btn danger" aria-label="Delete" data-id="${c.id}">&#10005;</button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+        countEl.textContent = `${filtered.length} of ${contacts.length} contacts`;
+      }
+
+      // Export / Import
+      function exportJSON() {
+        const data = contacts.map(({ id, ...rest }) => rest);
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'contacts.json';
+        a.click();
+      }
+
+      function exportCSV() {
+        const rows = [['name', 'phone', 'email', 'note']];
+        contacts.forEach(c => {
+          rows.push([c.name, (c.phones || []).join('; '), c.email || '', c.note || '']);
+        });
+        const csv = rows.map(r => r.map(f => {
+          const s = String(f).replace(/"/g, '""');
+          return /[",\\n]/.test(s) ? `"${s}"` : s;
+        }).join(',')).join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'contacts.csv';
+        a.click();
+      }
+
+      function parseCSV(csvText) {
+        const rows = [];
+        const re = /"[^"]*(?:""[^"]*)*"|[^,\r\n]+/g;
+        const lines = csvText.split(/\r?\n/).filter(l => l.trim());
+        lines.slice(1).forEach(line => {
+          const fields = [];
+          const matches = line.match(re);
+          if (matches) {
+            matches.forEach(m => {
+              if (m.startsWith('"') && m.endsWith('"')) {
+                fields.push(m.slice(1, -1).replace(/""/g, '"'));
+              } else {
+                fields.push(m);
+              }
+            });
+          }
+          while (fields.length < 4) fields.push('');
+          rows.push(fields.slice(0, 4));
+        });
+        return rows;
+      }
+
+      function importJSON(jsonText) {
+        try {
+          const data = JSON.parse(jsonText);
+          let arr = Array.isArray(data) ? data : [data];
+          let added = 0;
+          arr.forEach(item => {
+            if (!item || !item.name) return;
+            const phones = [];
+            if (Array.isArray(item.phones)) {
+              item.phones.forEach(p => { if (p) phones.push(String(p)); });
+            } else if (item.phone) {
+              String(item.phone).split(/[,;]/).forEach(p => { if (p.trim()) phones.push(p.trim()); });
+            }
+            contacts.push({
+              id: uid(),
+              name: String(item.name),
+              phones,
+              email: item.email ? String(item.email) : '',
+              note: item.note ? String(item.note) : ''
+            });
+            added++;
+          });
+          return added;
+        } catch (e) {
+          return -1;
+        }
+      }
+
+      function importCSV(csvText) {
+        const rows = parseCSV(csvText);
+        let added = 0;
+        rows.forEach(row => {
+          const [name, phone, email, note] = row;
+          if (!name) return;
+          const phones = phone.split(/[,;]/).map(p => p.trim()).filter(Boolean);
+          contacts.push({
+            id: uid(),
+            name: String(name),
+            phones,
+            email: email ? String(email) : '',
+            note: note ? String(note) : ''
+          });
+          added++;
+        });
+        return added;
+      }
+
+      function importFile(file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = reader.result;
+          let added = -1;
+          if (file.name.toLowerCase().endsWith('.json')) {
+            added = importJSON(text);
+          } else {
+            added = importCSV(text);
+          }
+          if (added >= 0) {
+            persist();
+            render();
+            alert(`Imported ${added} contact(s).`);
+          } else {
+            alert('Invalid file. Please import a valid JSON or CSV.');
+          }
+        };
+        reader.onerror = () => alert('Failed to read file.');
+        reader.readAsText(file);
+      }
+
+      // Merge
+      function mergeByName() {
+        const map = new Map();
+        contacts.forEach(c => {
+          const key = c.name.trim().toLowerCase();
+          if (!map.has(key)) map.set(key, []);
+          map.get(key).push(c);
+        });
+        let mergedCount = 0;
+        const newContacts = [];
+        for (const group of map.values()) {
+          if (group.length > 1) {
+            const combined = combineContacts(group);
+            newContacts.push(combined);
+            mergedCount += group.length;
+          } else {
+            newContacts.push(group[0]);
+          }
+        }
+        contacts = newContacts;
+        persist();
+        render();
+        return mergedCount;
+      }
+
+      function mergeByPhone() {
+        // Union-find over normalized phone digits with indirect chaining
+        const n = contacts.length;
+        const parent = Array.from({ length: n }, (_, i) => i);
+        function find(x) {
+          while (parent[x] !== x) {
+            parent[x] = parent[parent[x]];
+            x = parent[x];
+          }
+          return x;
+        }
+        function union(a, b) {
+          const ra = find(a), rb = find(b);
+          if (ra !== rb) parent[ra] = rb;
+        }
+        // Map normalized phone -> list of indices
+        const phoneToIdx = new Map();
+        for (let i = 0; i < n; i++) {
+          const c = contacts[i];
+          (c.phones || []).forEach(p => {
+            const key = normalizeDigits(p);
+            if (!key) return;
+            if (!phoneToIdx.has(key)) phoneToIdx.set(key, []);
+            phoneToIdx.get(key).push(i);
+          });
+        }
+        for (const indices of phoneToIdx.values()) {
+          for (let i = 1; i < indices.length; i++) {
+            union(indices[0], indices[i]);
+          }
+        }
+        const groups = new Map();
+        for (let i = 0; i < n; i++) {
+          const root = find(i);
+          if (!groups.has(root)) groups.set(root, []);
+          groups.get(root).push(contacts[i]);
+        }
+        const newContacts = [];
+        let mergedCount = 0;
+        for (const group of groups.values()) {
+          if (group.length > 1) {
+            newContacts.push(combineContacts(group));
+            mergedCount += group.length;
+          } else {
+            newContacts.push(group[0]);
+          }
+        }
+        contacts = newContacts;
+        persist();
+        render();
+        return mergedCount;
+      }
+
+      function combineContacts(group) {
+        const allPhones = [];
+        const seenDigits = new Set();
+        group.forEach(c => {
+          (c.phones || []).forEach(p => {
+            const nd = normalizeDigits(p);
+            if (nd && !seenDigits.has(nd)) {
+              seenDigits.add(nd);
+              allPhones.push(p);
+            }
+          });
+        });
+        let email = '';
+        for (const c of group) { if (c.email && c.email.trim()) { email = c.email.trim(); break; } }
+        const notes = [];
+        const seenNotes = new Set();
+        group.forEach(c => {
+          if (c.note && c.note.trim() && !seenNotes.has(c.note.trim().toLowerCase())) {
+            seenNotes.add(c.note.trim().toLowerCase());
+            notes.push(c.note.trim());
+          }
+        });
+        return {
+          id: uid(),
+          name: group[0].name,
+          phones: allPhones,
+          email,
+          note: notes.join(' / ')
+        };
+      }
+
+      // Event bindings
+      document.getElementById('btn-add').addEventListener('click', () => openModal(null));
+      document.getElementById('modal-close').addEventListener('click', closeModal);
+      document.getElementById('modal-cancel').addEventListener('click', closeModal);
+      modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+      document.getElementById('modal-save').addEventListener('click', () => {
+        clearValidation();
+        if (validate()) saveContact();
+      });
+      addPhoneBtn.addEventListener('click', () => {
+        if (phoneValues.length >= 4) return;
+        phoneValues.push('+91 ');
+        renderPhoneRows();
+        updateAddPhoneState();
+      });
+
+      searchInput.addEventListener('input', render);
+
+      document.getElementById('btn-export-json').addEventListener('click', exportJSON);
+      document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
+      document.getElementById('btn-import').addEventListener('click', () => document.getElementById('import-input').click());
+      document.getElementById('import-input').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) importFile(file);
+        e.target.value = '';
+      });
+
+      document.getElementById('btn-merge').addEventListener('click', () => {
+        mergePanel.classList.toggle('hidden');
+      });
+      document.getElementById('merge-name').addEventListener('click', () => {
+        const merged = mergeByName();
+        alert(merged > 0 ? `Merged ${merged} duplicate contacts by name, keeping all unique numbers.` : 'No duplicates found.');
+        mergePanel.classList.add('hidden');
+      });
+      document.getElementById('merge-phone').addEventListener('click', () => {
+        const merged = mergeByPhone();
+        alert(merged > 0 ? `Merged ${merged} duplicate contacts by phone, keeping all unique numbers.` : 'No duplicates found.');
+        mergePanel.classList.add('hidden');
+      });
+
+      grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const id = btn.getAttribute('data-id');
+        if (!id) return;
+        if (btn.getAttribute('aria-label') === 'Edit') {
+          const c = contacts.find(x => x.id === id);
+          if (c) openModal(c);
+        } else if (btn.getAttribute('aria-label') === 'Delete') {
+          deleteContact(id);
+        }
+      });
+
+      // Keyboard shortcut for modal
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
+          closeModal();
+        }
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
